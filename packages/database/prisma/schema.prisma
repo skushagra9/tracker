@@ -1,0 +1,26 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Request {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  status    String   @default("pending") // pending, processing, completed, failed
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  progress  Int      @default(0)
+  jobId     String   @unique
+  report    Report?
+}
+
+model Report {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime @default(now())
+  requestId String   @unique
+  request   Request  @relation(fields: [requestId], references: [jobId])
+  content   Json?    
+}

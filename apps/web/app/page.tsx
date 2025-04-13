@@ -1,102 +1,206 @@
-import Image, { type ImageProps } from "next/image";
-import { Button } from "@repo/ui/button";
-import styles from "./page.module.css";
+"use client";
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FaSearch, FaSpinner, FaMagic } from 'react-icons/fa';
+import { useRouter } from 'next/navigation';
 
-type Props = Omit<ImageProps, "src"> & {
-  srcLight: string;
-  srcDark: string;
-};
+function Page() {
+  const router = useRouter();
+  const [input, setInput] = useState('');
+  const [inputType, setInputType] = useState('url');
+  const [selectedLLMs, setSelectedLLMs] = useState([
+    'nvidia',
+    'gemini-2.5',
+  ]);
+  const [loading, setLoading] = useState(false);
+  const [jobId, setJobId] = useState<string>('');
+  const [progress, setProgress] = useState<number>(0);
+  useEffect(() => {
+    if (!jobId) return;
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`http://localhost:3001/api/job-status/${jobId}`);
+        const data = await res.json();
+        setProgress(data.progress || 0);
 
-const ThemeImage = (props: Props) => {
-  const { srcLight, srcDark, ...rest } = props;
+        if (data.status === 'completed' && data.result) {
+          router.push(`/dashboard/${jobId}`);
+          clearInterval(interval);
+        } else if (data.status === 'failed') {
+          console.error('Job failed:', data);
+          setLoading(false);
+          clearInterval(interval);
+        }
+      } catch (error) {
+        console.error('Error fetching job status:', error);
+      }
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [jobId, router]);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+    setJobId('');
+    setProgress(0);
+
+    try {
+      // Call your asynchronous analysis endpoint.
+      const response = await fetch('http://localhost:3001/api/analyze-async', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ input, inputType, selectedLLMs }),
+      });
+      const data = await response.json();
+      if (data.success && data.jobId) {
+        // Set the jobId to start polling.
+        setJobId(data.jobId);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      setLoading(false);
+    }
+  };
+
+  const models = [
+    { id: 'nvidia', name: 'NVIDIA', color: 'bg-purple-500' },
+    { id: 'deepseek-v3', name: 'DeepSeek', color: 'bg-green-500' },
+    { id: 'gemini-2.5', name: 'Gemini', color: 'bg-orange-500' },
+  ];
 
   return (
-    <>
-      <Image {...rest} src={srcLight} className="imgLight" />
-      <Image {...rest} src={srcDark} className="imgDark" />
-    </>
-  );
-};
-
-export default function Home() {
-  return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <ThemeImage
-          className={styles.logo}
-          srcLight="turborepo-dark.svg"
-          srcDark="turborepo-light.svg"
-          alt="Turborepo logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>apps/web/app/page.tsx</code>
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new/clone?demo-description=Learn+to+implement+a+monorepo+with+a+two+Next.js+sites+that+has+installed+three+local+packages.&demo-image=%2F%2Fimages.ctfassets.net%2Fe5382hct74si%2F4K8ZISWAzJ8X1504ca0zmC%2F0b21a1c6246add355e55816278ef54bc%2FBasic.png&demo-title=Monorepo+with+Turborepo&demo-url=https%3A%2F%2Fexamples-basic-web.vercel.sh%2F&from=templates&project-name=Monorepo+with+Turborepo&repository-name=monorepo-turborepo&repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fturborepo%2Ftree%2Fmain%2Fexamples%2Fbasic&root-directory=apps%2Fdocs&skippable-integrations=1&teamSlug=vercel&utm_source=create-turbo"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://turbo.build/docs?utm_source"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
-        </div>
-        <Button appName="web" className={styles.secondary}>
-          Open alert
-        </Button>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com/templates?search=turborepo&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-blue-50">
+      <div className="container mx-auto px-6 py-12 max-w-5xl">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-12"
         >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://turbo.build?utm_source=create-turbo"
-          target="_blank"
-          rel="noopener noreferrer"
+          <h1 className="text-4xl font-bold text-gray-800 mb-3 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-blue-500">
+            AI SEO Rank Tracker
+          </h1>
+          <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+            Monitor how your brand performs across major AI platforms like Llama, Gemini, and more.
+          </p>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="bg-white rounded-xl shadow-lg border border-gray-100 p-8 mb-10"
         >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to turbo.build →
-        </a>
-      </footer>
+          <form onSubmit={handleSubmit} className="space-y-8">
+            <div>
+              <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                <FaMagic className="mr-2 text-indigo-500" />
+                Track Your Performance
+              </h2>
+              <div className="flex mb-5">
+                <button
+                  type="button"
+                  onClick={() => setInputType('url')}
+                  className={`px-5 py-3 text-sm font-medium rounded-l-lg transition-all ${
+                    inputType === 'url'
+                      ? 'bg-indigo-500 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  Website URL
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setInputType('brand')}
+                  className={`px-5 py-3 text-sm font-medium rounded-r-lg transition-all ${
+                    inputType === 'brand'
+                      ? 'bg-indigo-500 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  Brand Name
+                </button>
+              </div>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder={
+                    inputType === 'url'
+                      ? 'Enter website URL...'
+                      : 'Enter brand name...'
+                  }
+                  className="w-full px-5 py-4 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-800 text-lg shadow-sm"
+                  required
+                />
+                <div className="absolute right-4 top-4 text-gray-400">
+                  <FaSearch size={16} />
+                </div>
+              </div>
+            </div>
+            <div className="bg-gray-50 p-6 rounded-lg">
+              <h3 className="text-md font-semibold mb-4 text-gray-700">
+                Choose AI Models to Analyze:
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {models.map((model) => (
+                  <div
+                    key={model.id}
+                    onClick={() => {
+                      if (selectedLLMs.includes(model.id)) {
+                        setSelectedLLMs(selectedLLMs.filter((l) => l !== model.id));
+                      } else {
+                        setSelectedLLMs([...selectedLLMs, model.id]);
+                      }
+                    }}
+                    className={`
+                      cursor-pointer rounded-lg p-4 transition-all hover:shadow-md
+                      ${
+                        selectedLLMs.includes(model.id)
+                          ? 'bg-white border-2 border-indigo-300 shadow-md'
+                          : 'bg-white border border-gray-200 hover:border-gray-300'
+                      }
+                    `}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${model.color} text-white`}>
+                        {model.name.charAt(0)}
+                      </div>
+                      <div>
+                        <div className="font-medium text-gray-800">{model.name}</div>
+                        <div className={`text-xs ${selectedLLMs.includes(model.id) ? 'text-indigo-500' : 'text-gray-400'}`}>
+                          {selectedLLMs.includes(model.id) ? 'Selected' : 'Not selected'}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <motion.button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-medium py-4 px-6 rounded-lg transition-all disabled:opacity-70 flex items-center justify-center shadow-lg text-lg"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              {loading ? (
+                <>
+                  <FaSpinner className="animate-spin mr-2" size={16} />
+                  Analyzing... {progress}%
+                </>
+              ) : (
+                'Generate AI SEO Insights'
+              )}
+            </motion.button>
+          </form>
+        </motion.div>
+
+       
+      </div>
     </div>
   );
 }
+
+export default Page;
