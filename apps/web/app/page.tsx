@@ -17,17 +17,24 @@ function Page() {
   const [progress, setProgress] = useState<number>(0);
   useEffect(() => {
     if (!jobId) return;
+    
+    const [lastServerProgress, setLastServerProgress] = useState<number>(0);
+    
     const interval = setInterval(async () => {
       try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/job-status/${jobId}`);
         const data = await res.json();
         
-        // If progress hasn't changed, increment it by 2 (up to 95%)
-        if (data.progress === progress && progress < 95) {
-          setProgress(prev => Math.min(prev + 2, 95));
-        } else {
-          setProgress(data.progress || 0);
+        if (data.progress !== undefined) {
+          setLastServerProgress(data.progress);
         }
+        
+        setProgress(prev => {
+          if (lastServerProgress > prev) {
+            return lastServerProgress;
+          }
+          return Math.min(prev + 1, 95);
+        });
 
         if (data.status === 'completed' && data.result) {
           router.push(`/dashboard/${jobId}`);
@@ -40,10 +47,10 @@ function Page() {
       } catch (error) {
         console.error('Error fetching job status:', error);
       }
-    }, 2000);
+    }, 1000); 
 
     return () => clearInterval(interval);
-  }, [jobId, router, progress]);
+  }, [jobId, router]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
