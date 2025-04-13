@@ -3,55 +3,64 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FaSearch, FaSpinner, FaMagic } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
+import { useRef } from 'react';
+
 
 function Page() {
   const router = useRouter();
   const [input, setInput] = useState('');
   const [inputType, setInputType] = useState('url');
-  const [selectedLLMs, setSelectedLLMs] = useState([
-    'chatgpt-4o',
-    'gemini-2.5',
-  ]);
+  const [selectedLLMs, setSelectedLLMs] = useState(['chatgpt-4o', 'gemini-2.5']);
   const [loading, setLoading] = useState(false);
-  const [jobId, setJobId] = useState<string>('');
-  const [progress, setProgress] = useState<number>(0);
+  const [jobId, setJobId] = useState('');
+  const [progress, setProgress] = useState(0);
+
+  const progressRef = useRef(0); // ✅ must be outside useEffect
+
   useEffect(() => {
     if (!jobId) return;
-    
-    const [lastServerProgress, setLastServerProgress] = useState<number>(0);
-    
-    const interval = setInterval(async () => {
+
+    const poll = setInterval(async () => {
       try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/job-status/${jobId}`);
         const data = await res.json();
-        
-        if (data.progress !== undefined) {
-          setLastServerProgress(data.progress);
-        }
-        
-        setProgress(prev => {
-          if (lastServerProgress > prev) {
-            return lastServerProgress;
-          }
-          return Math.min(prev + 1, 95);
-        });
 
         if (data.status === 'completed' && data.result) {
+          progressRef.current = 100;
+          setProgress(100);
           router.push(`/dashboard/${jobId}`);
-          clearInterval(interval);
+          clearInterval(poll);
+          clearInterval(tick);
         } else if (data.status === 'failed') {
           console.error('Job failed:', data);
           setLoading(false);
-          clearInterval(interval);
+          clearInterval(poll);
+          clearInterval(tick);
+        } else if (typeof data.progress === 'number') {
+          if (data.progress > progressRef.current) {
+            progressRef.current = data.progress;
+            setProgress(data.progress);
+          }
         }
       } catch (error) {
-        console.error('Error fetching job status:', error);
+        console.error('Error polling job status:', error);
       }
-    }, 1000); 
+    }, 2000);
 
-    return () => clearInterval(interval);
+    const tick = setInterval(() => {
+      if (progressRef.current < 95) {
+        progressRef.current += 1;
+        setProgress(progressRef.current);
+      }
+    }, 1000);
+
+    return () => {
+      clearInterval(poll);
+      clearInterval(tick);
+    };
   }, [jobId, router]);
 
+  
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
