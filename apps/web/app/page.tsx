@@ -120,7 +120,7 @@ function Page() {
                 <button
                   type="button"
                   onClick={() => setInputType('url')}
-                  className={`px-5 py-3 text-sm font-medium rounded-l-lg transition-all ${
+                  className={`px-5 py-3 text-sm font-medium rounded-lg transition-all ${
                     inputType === 'url'
                       ? 'bg-indigo-500 text-white shadow-md'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -128,7 +128,7 @@ function Page() {
                 >
                   Website URL
                 </button>
-                <button
+                {/* <button
                   type="button"
                   onClick={() => setInputType('brand')}
                   className={`px-5 py-3 text-sm font-medium rounded-r-lg transition-all ${
@@ -138,7 +138,7 @@ function Page() {
                   }`}
                 >
                   Brand Name
-                </button>
+                </button> */}
               </div>
               <div className="relative">
                 <input
@@ -200,7 +200,7 @@ function Page() {
             <motion.button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-medium py-4 px-6 rounded-lg transition-all disabled:opacity-70 flex items-center justify-center shadow-lg text-lg"
+              className="w-full bg-indigo-500 hover:from-indigo-700 hover:to-blue-700 text-white font-medium py-4 px-6 rounded-lg transition-all disabled:opacity-70 flex items-center justify-center shadow-lg text-lg"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
