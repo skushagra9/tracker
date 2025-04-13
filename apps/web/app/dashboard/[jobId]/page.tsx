@@ -2,9 +2,6 @@
 import React, { useEffect, useState } from 'react';
 import Dashboard from '../../components/Dashboard';
 
-// API FOR LLMS
-// CODE STRUCTURING IN DIFF FILES
-
 const DashboardPage = ({
   params
 }: {
