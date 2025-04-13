@@ -9,7 +9,7 @@ function Page() {
   const [input, setInput] = useState('');
   const [inputType, setInputType] = useState('url');
   const [selectedLLMs, setSelectedLLMs] = useState([
-    'nvidia',
+    'chatgpt-4o',
     'gemini-2.5',
   ]);
   const [loading, setLoading] = useState(false);
@@ -62,7 +62,7 @@ function Page() {
   };
 
   const models = [
-    { id: 'nvidia', name: 'NVIDIA', color: 'bg-purple-500' },
+    { id: 'chatgpt-4o', name: 'ChatGPT 4o', color: 'bg-purple-500' },
     { id: 'gemini-2.5', name: 'Gemini', color: 'bg-orange-500' },
   ];
 

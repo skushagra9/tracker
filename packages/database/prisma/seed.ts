@@ -2,9 +2,7 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-async function main() {
-  // Create a test user
- 
+async function main() { 
   console.log('Seed data created successfully');
 }
 
