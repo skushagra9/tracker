@@ -49,8 +49,6 @@ router.post('/analyze-async', async (req: Request, res: Response) => {
       } else {
         content = await analyzeBrand(input);
       }
-
-      Logger.info(`Scraped content: ${JSON.stringify(content)}`);
       
       await prisma.request.update({
         where: { jobId },
@@ -61,8 +59,6 @@ router.post('/analyze-async', async (req: Request, res: Response) => {
         content,
         selectedLLMs,
       );
-
-      Logger.info(`LLM responses: ${JSON.stringify(llmResponses)}`);
       
       await prisma.request.update({
         where: { jobId },
@@ -75,7 +71,6 @@ router.post('/analyze-async', async (req: Request, res: Response) => {
         inputType === 'brand' ? input : content.title
       );
 
-      Logger.info(`Insights: ${JSON.stringify(insights)}`);
       
       await prisma.request.update({
         where: { jobId },
@@ -100,7 +95,6 @@ router.post('/analyze-async', async (req: Request, res: Response) => {
       });
       
     } catch (error: any) {
-      Logger.error(`Analysis job ${jobId} failed: ${error.message}`);
       await prisma.request.update({
         where: { jobId },
         data: { 
