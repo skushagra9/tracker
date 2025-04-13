@@ -21,7 +21,13 @@ function Page() {
       try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/job-status/${jobId}`);
         const data = await res.json();
-        setProgress(data.progress || 0);
+        
+        // If progress hasn't changed, increment it by 2 (up to 95%)
+        if (data.progress === progress && progress < 95) {
+          setProgress(prev => Math.min(prev + 2, 95));
+        } else {
+          setProgress(data.progress || 0);
+        }
 
         if (data.status === 'completed' && data.result) {
           router.push(`/dashboard/${jobId}`);
@@ -37,7 +43,7 @@ function Page() {
     }, 2000);
 
     return () => clearInterval(interval);
-  }, [jobId, router]);
+  }, [jobId, router, progress]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
