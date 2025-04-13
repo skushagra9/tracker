@@ -1,25 +1,9 @@
 "use client";
 import React from 'react';
 import { FaInfoCircle, FaDownload, FaExclamationTriangle, FaCheckCircle, FaArrowUp, FaArrowDown } from 'react-icons/fa';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-} from 'chart.js';
 import { Report } from '@repo/core';
 
-// Register ChartJS components
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
-
-// Mapping for platform display names
 const MODEL_PLATFORMS = {
-  'deepseek-v3': 'DeepSeek',
   'gemini-2.5': 'Gemini',
   'nvidia': 'NVIDIA',
 };

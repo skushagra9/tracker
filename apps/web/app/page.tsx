@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { FaSearch, FaSpinner, FaMagic } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
 
@@ -19,7 +19,7 @@ function Page() {
     if (!jobId) return;
     const interval = setInterval(async () => {
       try {
-        const res = await fetch(`http://localhost:3001/api/job-status/${jobId}`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/job-status/${jobId}`);
         const data = await res.json();
         setProgress(data.progress || 0);
 
@@ -46,15 +46,13 @@ function Page() {
     setProgress(0);
 
     try {
-      // Call your asynchronous analysis endpoint.
-      const response = await fetch('http://localhost:3001/api/analyze-async', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/analyze-async`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ input, inputType, selectedLLMs }),
       });
       const data = await response.json();
       if (data.success && data.jobId) {
-        // Set the jobId to start polling.
         setJobId(data.jobId);
       }
     } catch (error) {
@@ -65,7 +63,6 @@ function Page() {
 
   const models = [
     { id: 'nvidia', name: 'NVIDIA', color: 'bg-purple-500' },
-    { id: 'deepseek-v3', name: 'DeepSeek', color: 'bg-green-500' },
     { id: 'gemini-2.5', name: 'Gemini', color: 'bg-orange-500' },
   ];
 

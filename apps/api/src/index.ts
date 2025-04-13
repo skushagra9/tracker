@@ -11,7 +11,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { ScrapedContent } from '@repo/core';
 import { analyzeBrand } from './services/analysisService';
 import { analyzeResponses } from './services/responseAnalysis';
-import { modelMapping } from './utils/consts';
 import getPrismaInstance from '@repo/database';
 
 const prisma = getPrismaInstance();
@@ -22,17 +21,6 @@ app.use(cors());
 
 app.get('/api/health', (req: Request, res: Response) => {
   res.json({ status: 'ok' });
-});
-
-app.get('/api/available-llms', (req: Request, res: Response) => {
-  
-  const availableModels = [
-    { id: modelMapping.nvidia, name: 'Nvidia', provider: 'OpenRouter' },
-    { id: modelMapping['gemini-2.5'], name: 'Gemini 2.5 Pro', provider: 'OpenRouter' },
-   
-  ];
-  
-  res.json({ success: true, models: availableModels });
 });
 
 app.post('/api/analyze-async', async (req: Request, res: Response) => {

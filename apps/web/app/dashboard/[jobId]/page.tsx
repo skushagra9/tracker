@@ -2,10 +2,8 @@
 import React, { useEffect, useState } from 'react';
 import Dashboard from '../../components/Dashboard';
 
-// API IN ENV
 // API FOR LLMS
 // CODE STRUCTURING IN DIFF FILES
-
 
 const DashboardPage = ({
   params
@@ -21,7 +19,7 @@ const DashboardPage = ({
     if (!jobId) return;
     const fetchReport = async () => {
       try {
-        const res = await fetch(`http://localhost:3001/api/job-status/${jobId}`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/job-status/${jobId}`);
         const data = await res.json();
         if (data.status === 'completed' && data.result) {
           setReport(data.result.report);
